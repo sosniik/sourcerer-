@@ -3,29 +3,19 @@ import $ from 'jquery';
 import { render } from "react-dom";
 import { Pie } from 'react-chartjs-2';
 import './index.css'
-import {
-  ApolloClient,
-  InMemoryCache,
-  createHttpLink,
-  ApolloProvider,
-  useQuery,
-  gql
-} from "@apollo/client";
-// const fetch= require("node-fetch")
+import {ApolloClient,InMemoryCache,createHttpLink,ApolloProvider,useQuery,gql} from "@apollo/client";
 const token = process.env.REACT_APP_GITHUB_TOKEN
 const link = createHttpLink({
   uri: 'https://api.github.com/graphql',
   headers : {authorization : `Bearer ${token}`}
 });
-
+console.log("token",token)
 let data_languages = []
 
 let filteredArray = []
 
-let nameRepo = []
-
 const GET_LOGIN = gql`
-query { 
+query{ 
   viewer { 
     login,
     avatarUrl,
@@ -65,94 +55,14 @@ query {
         }
       }
     }
-  },
-  
+  }, 
 }
 `;
-console.log(data_languages,filteredArray)
-
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
   link,
 });
-
-function MyComponent() {
-  const [error, setError] = useState(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [items, setItems] = useState([]);
-
-  // Remarque : le tableau vide de dépendances [] indique
-  // que useEffect ne s’exécutera qu’une fois, un peu comme
-  // componentDidMount()
-  useEffect(() => {
-    fetch("https://api.codetabs.com/v1/loc/?github=sosniik/CX-ALGO-OAV")
-      .then(res => res.json())
-      .then(
-        (result) => {
-          setIsLoaded(true);
-          setItems(result.items);
-        },
-        // Remarque : il faut gérer les erreurs ici plutôt que dans
-        // un bloc catch() afin que nous n’avalions pas les exceptions
-        // dues à de véritables bugs dans les composants.
-        (error) => {
-          setIsLoaded(true);
-          setError(error);
-        }
-      )
-  }, [])
-  console.log(items)
-  if (error) {
-    return <div>Erreur : {error.message}</div>;
-  } else if (!isLoaded) {
-    return <div>Chargement...</div>;
-  } else {
-    return (
-      <ul>
-      {items.map(item => (
-        <li key={item.name}>
-          {item.name} {item.price}
-        </li>
-      ))}
-    </ul>
-    );
-  }
-}
-function LOC(){
-  const { loading, error, data } = useQuery(GET_LOGIN);
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error :(</p>;
-  const [items, setItems] = useState([]);
-  data.viewer.repositories.nodes.forEach(name => {if(name.nameWithOwner.includes(`${data.viewer.login}`) == true){
-    nameRepo.push(name.nameWithOwner)}}
-  )
-  // nameRepo.forEach(name => {let url =`https://api.codetabs.com/v1/loc?github=${name}`
-  //   setTimeout(await fetch(url)
-  //   .then(response => response.json())
-  //   .then()
-  //   ,5000)
-  // })
-  // let url = `https://api.codetabs.com/v1/loc?github=${data.viewer.login}/API_Node`
-  function countGithub(repo) {
-    fetch('https://api.github.com/repos/'+repo+'/stats/contributors')
-        .then(response => response.json())
-        .then(contributors => contributors
-            .map(contributor => contributor.weeks
-                .reduce((lineCount, week) => lineCount + week.a - week.d, 0)))
-        .then(lineCounts => lineCounts.reduce((lineTotal, lineCount) => lineTotal + lineCount))
-        .then(lines => window.alert(lines));
-    }
-  countGithub("sosniik/CX-ALGO-OAV")
-
-  console.log("test nameREPO :", nameRepo)
-  console.log(JSON.stringify(data.viewer.contributionsCollection.commitContributionsByRepository))
-  return(
-    <div>
-      {nameRepo}
-    </div>
-  )
-}
 
 function UserLogin() {
   const { loading, error, data } = useQuery(GET_LOGIN);
@@ -234,19 +144,11 @@ function Languages(){
     }else{
       data_languages.push(data.viewer.repositories.nodes[i].languages.nodes[0].name)
     }
-    // console.log("efiuehfiehfiehfiefhei",data.viewer.contributionsCollection.commitContributionsByRepository[i].repository.primaryLanguage.name)
-    // console.log("efiuehf",data.viewer.contributionsCollection.commitContributionsByRepository[i].contributions.totalCount)
-
-    // if(data.viewer.contributionsCollection.commitContributionsByRepository){
-
-    // }
   }
   console.log(data_languages)
   $.each(data_languages, function(i, el){
     if($.inArray(el, filteredArray) === -1) filteredArray.push(el);
 });
-  console.log("efyegfyg",filteredArray)
-  console.log("ehfgueighfueigfyugrfyugvfyuegfyu",data.viewer.repositories.nodes.nameWithOwner)
   return(
     <div className="Languages">
       <Pie data={dataPie} />
@@ -254,24 +156,13 @@ function Languages(){
   )
 }
 
-function Overview(){
-  const { loading, error, data } = useQuery(GET_LOGIN);
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error :(</p>;
-  return(
-    <div className="Overview">
-     
-    </div>
-  )
-}
+
 function App() {
   return (
     <div>
       <Summary/>
       <UserLogin />
       <Languages />
-      {/* <LOC /> */}
-      <MyComponent/>
     </div>
   );
 }
